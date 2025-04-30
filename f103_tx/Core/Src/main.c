@@ -2,7 +2,7 @@
 #include "main.h"
 
 #include "RCC_lib.h"
-
+#include "gpio_lib.h"
 
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
@@ -13,15 +13,27 @@ int main(void)
 
   HAL_Init();
   RCC_init(HSE);
+//  __HAL_RCC_GPIOC_CLK_ENABLE();
   APB2_clk_setup(GPIOCen);
+  gpio_pin_t pin = {
+		   .config_output = output_push_pull,
+		  .mode = output_10Mhz,
+		  .pin = 13,
+		  .port = PORTC,
+  };
+  gpio_init(&pin);
 //  SystemClock_Config();
+
+//  __HAL_RCC_GPIOC_CLK_ENABLE();
   //MX_GPIO_Init();
   while (1)
   {
     /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
-
+	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 1);
+	  HAL_Delay(100);
+	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 0);
+		  HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }
