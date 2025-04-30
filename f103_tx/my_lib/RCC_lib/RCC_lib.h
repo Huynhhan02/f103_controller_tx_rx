@@ -52,6 +52,7 @@ typedef enum{
 	GPIOCen,
 	GPIODen,
 	GPIOEen,
+	UART1en = 14
 }RCC_APB2_bit;
 
 void RCC_init(crystal_type_t rcc);
