@@ -10,6 +10,7 @@
 
 #include "stdint.h"
 #include "gpio_lib.h"
+#include "RCC_lib.h"
 
 void uart1_init();
 void send_byte(char data);

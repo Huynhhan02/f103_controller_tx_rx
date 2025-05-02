@@ -11,6 +11,9 @@
 
 void gpio_init(gpio_pin_t *pin)
 {
+	APB2_clk_setup(GPIOCen);
+	  APB2_clk_setup(GPIOAen);
+	  APB2_clk_setup(AFIOen);
 	uint32_t base = 0;
 	switch(pin->port)
 	{

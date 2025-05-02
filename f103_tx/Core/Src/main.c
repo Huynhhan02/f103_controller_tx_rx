@@ -4,21 +4,24 @@
 #include "RCC_lib.h"
 #include "gpio_lib.h"
 #include "uart1_lib.h"
+#include "DMA_lib.h"
+
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+char data[20];
+
+char a;
+
 
 int main(void)
 {
 
 
   HAL_Init();
-  RCC_init(HSE);
+  RCC_init(HSI);
 //  SystemClock_Config();
-  APB2_clk_setup(GPIOCen);
-  APB2_clk_setup(GPIOAen);
 
-  APB2_clk_setup(AFIOen);
-  APB2_clk_setup(UART1en);
+  APB1_clk_setup(UART2en);
 
   gpio_pin_t pin = {
 		   .config_output = output_push_pull,
@@ -28,15 +31,19 @@ int main(void)
   };
   gpio_init(&pin);
   uart1_init();
+//  uart2_init();
+  DMA_UART_init(data);
   while (1)
   {
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
-	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 1);
-	  HAL_Delay(100);
-	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 0);
-	  HAL_Delay(100);
-	  send_data("hello\r\n",9);
+//	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 1);
+//	  HAL_Delay(100);
+//	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 0);
+//	  HAL_Delay(100);
+//	  send_data("llo\n",9);
+//	  HAL_Delay(2000);
+	  a = recv_byte();
   }
   /* USER CODE END 3 */
 }
