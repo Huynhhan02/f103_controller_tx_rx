@@ -15,6 +15,6 @@
 void uart1_init();
 void send_byte(char data);
 void send_data(char* data, int data_leght);
-
+void uart1_init_interrupt();
 
 #endif /* UART1_LIB_UART1_LIB_H_ */

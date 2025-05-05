@@ -51,4 +51,6 @@ typedef struct gpio_pin{
 //typedef gpio_pin gpio_pin_t;
 
 void gpio_init(gpio_pin_t *pin);
+void led_control(int led, int led_state);
+
 #endif /* GPIO_LIB_GPIO_LIB_H_ */

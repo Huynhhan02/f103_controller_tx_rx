@@ -1,18 +1,73 @@
 
 #include "main.h"
+#include "string.h"
 
 #include "RCC_lib.h"
 #include "gpio_lib.h"
 #include "uart1_lib.h"
 #include "DMA_lib.h"
+#include "timer_lib.h"
+//void SystemClock_Config(void);
+//static void MX_GPIO_Init(void);
 
-void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
+#define led_on (led_control(13,1))
+#define led_off (led_control(13,0))
+
 char data[20];
+int indx = 0;
+char uart_buff[20];
 
-char a;
+static char connect_flag = 0;
 
+void connect_handler()
+{
+	int time_out = 0;
+	while(1)
+	{
+		toggle_led(13);
+		delay(200);
+		send_data("hallo", 5);
+		if(strcmp(uart_buff,"ok\r\n") == 0)
+		{
+			strcpy(uart_buff,"");
+			send_data("connect", 7);
+			connect_flag = 0;
+			break;
+		}
+		if(time_out++ >50){
+			send_data("fail", 4);
+			connect_flag = 0;
+			break;
+		}
+	}
 
+}
+void EXTI0_IRQHandler()
+{
+	delay(1000);
+	if((int)button_read(0) == 0)
+	{
+		connect_flag = 1;
+	}
+	uint32_t* EXTI_PR =(uint32_t*) 0x40010414;
+	*EXTI_PR |= (0x01<<0);
+}
+void USART1_IRQHandler()
+{
+	data[indx] = recv_byte();
+	if(data[indx++] == '\n')
+	{
+		indx = 0;
+		strcpy(uart_buff,data);
+		strcpy(data,"");
+		if(strcmp(uart_buff,"han\r\n")==0)
+		{
+			send_data("hello", 5);
+			strcpy(uart_buff,"");
+		}
+
+	}
+}
 int main(void)
 {
 
@@ -20,101 +75,44 @@ int main(void)
   HAL_Init();
   RCC_init(HSI);
 //  SystemClock_Config();
-
   APB1_clk_setup(UART2en);
+  APB2_clk_setup(GPIOCen);
+  APB2_clk_setup(GPIOAen);
+  APB1_clk_setup(TIM4en);
+  uart1_init_interrupt();
 
   gpio_pin_t pin = {
-		   .config_output = output_push_pull,
+		  .config_output = output_push_pull,
 		  .mode = output_10Mhz,
 		  .pin = 13,
 		  .port = PORTC,
   };
   gpio_init(&pin);
-  uart1_init();
-//  uart2_init();
-  DMA_UART_init(data);
+  button_init();
+  timer_init();
+//  uint32_t* NVIC_IPR37 = 0xe000e494;
+//  *NVIC_IPR37 = 13;
+//  uint32_t* NVIC_IPR6 = 0xe000e418;
+//  *NVIC_IPR6 = 40;
+
   while (1)
   {
+	  if(connect_flag)
+	  {
+		  connect_handler();
+	  }
+//	 toggle_led(13);
+//	 delay(1000);
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
-//	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 1);
+//	  led_on;
 //	  HAL_Delay(100);
-//	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, 0);
+//	  led_off;
 //	  HAL_Delay(100);
-//	  send_data("llo\n",9);
-//	  HAL_Delay(2000);
-	  a = recv_byte();
+//	  send_data("hello\r\n",9);
+
+//	  a = recv_byte();
   }
   /* USER CODE END 3 */
 }
 
-
-void SystemClock_Config(void)
-{
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
-  {
-    Error_Handler();
-  }
-}
-
-/**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_GPIO_Init(void)
-{
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-}
-
-void Error_Handler(void)
-{
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
-  /* USER CODE END Error_Handler_Debug */
-}
-
-#ifdef  USE_FULL_ASSERT
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
-void assert_failed(uint8_t *file, uint32_t line)
-{
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
-}
-#endif /* USE_FULL_ASSERT */
