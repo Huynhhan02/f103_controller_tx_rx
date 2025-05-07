@@ -1,50 +1,58 @@
 
 #include "main.h"
 #include "string.h"
+#include "cmsis_os.h"
+
 
 #include "RCC_lib.h"
 #include "gpio_lib.h"
 #include "uart1_lib.h"
 #include "DMA_lib.h"
 #include "timer_lib.h"
+#include "data_handle.h"
 //void SystemClock_Config(void);
 //static void MX_GPIO_Init(void);
+
+osThreadId_t defaultTaskHandle;
+const osThreadAttr_t defaultTask_attributes = {
+  .name = "defaultTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for myTask02 */
+osThreadId_t myTask02Handle;
+const osThreadAttr_t myTask02_attributes = {
+  .name = "myTask02",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+
 
 #define led_on (led_control(13,1))
 #define led_off (led_control(13,0))
 
+
+void StartDefaultTask(void *argument);
+void StartTask02(void *argument);
+
+
 char data[20];
+char aaa[4];
 int indx = 0;
-char uart_buff[20];
+char uart_buff[];
+char alarm[10];
+uint32_t temp1 = 767574684;
+uint32_t x;
 
 static char connect_flag = 0;
+typedef struct test{
+		int test1;
+		int test2;
+}test_type_t;
 
-void connect_handler()
-{
-	int time_out = 0;
-	while(1)
-	{
-		toggle_led(13);
-		delay(200);
-		send_data("hallo", 5);
-		if(strcmp(uart_buff,"ok\r\n") == 0)
-		{
-			strcpy(uart_buff,"");
-			send_data("connect", 7);
-			connect_flag = 0;
-			break;
-		}
-		if(time_out++ >50){
-			send_data("fail", 4);
-			connect_flag = 0;
-			break;
-		}
-	}
-
-}
 void EXTI0_IRQHandler()
 {
-	delay(1000);
+	osDelay(1000);
 	if((int)button_read(0) == 0)
 	{
 		connect_flag = 1;
@@ -59,11 +67,13 @@ void USART1_IRQHandler()
 	{
 		indx = 0;
 		strcpy(uart_buff,data);
-		strcpy(data,"");
+//		send_data(uart_buff, strlen(data));
+//		memset(uart_buff,0,strlen(uart_buff));
+		memset(data,0,strlen(data));
 		if(strcmp(uart_buff,"han\r\n")==0)
 		{
 			send_data("hello", 5);
-			strcpy(uart_buff,"");
+			memset(uart_buff,0,strlen(uart_buff));
 		}
 
 	}
@@ -71,16 +81,13 @@ void USART1_IRQHandler()
 int main(void)
 {
 
-
   HAL_Init();
   RCC_init(HSI);
-//  SystemClock_Config();
-  APB1_clk_setup(UART2en);
-  APB2_clk_setup(GPIOCen);
-  APB2_clk_setup(GPIOAen);
-  APB1_clk_setup(TIM4en);
-  uart1_init_interrupt();
+  osKernelInitialize();
 
+//  SystemClock_Config();
+  APB2_clk_setup(GPIOCen);
+  uart1_init_interrupt();
   gpio_pin_t pin = {
 		  .config_output = output_push_pull,
 		  .mode = output_10Mhz,
@@ -90,29 +97,35 @@ int main(void)
   gpio_init(&pin);
   button_init();
   timer_init();
-//  uint32_t* NVIC_IPR37 = 0xe000e494;
-//  *NVIC_IPR37 = 13;
-//  uint32_t* NVIC_IPR6 = 0xe000e418;
-//  *NVIC_IPR6 = 40;
 
-  while (1)
-  {
-	  if(connect_flag)
-	  {
-		  connect_handler();
-	  }
-//	 toggle_led(13);
-//	 delay(1000);
-    /* USER CODE END WHILE */
-    /* USER CODE BEGIN 3 */
-//	  led_on;
-//	  HAL_Delay(100);
-//	  led_off;
-//	  HAL_Delay(100);
-//	  send_data("hello\r\n",9);
+  convert_int_to_4char(aaa, temp1);
+  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  myTask02Handle = osThreadNew(StartTask02, NULL, &myTask02_attributes);
+  strcpy(alarm,"ngaancuc");
+  osKernelStart();
 
-//	  a = recv_byte();
-  }
   /* USER CODE END 3 */
 }
 
+
+void StartDefaultTask(void *argument)
+{
+	while(1)
+	{
+		if(connect_flag)
+		{
+		 connect_handler(&connect_flag,uart_buff);
+		}
+		osDelay(1);
+	}
+}
+void StartTask02(void *argument)
+{
+	while(1)
+	{
+
+		send_data(alarm,strlen(alarm));
+		x = convert_4char_to_uint32(aaa);
+		osDelay(3000);
+	}
+}

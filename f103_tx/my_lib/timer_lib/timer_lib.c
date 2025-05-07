@@ -10,6 +10,7 @@
 
 void timer_init()
 {
+	  APB1_clk_setup(TIM4en);
 
 //		uint32_t* TIM1_DIER = (uint32_t*)(TIM1_BASE + 0x0c);
 //		*TIM1_DIER |= 1;

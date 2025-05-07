@@ -47,6 +47,9 @@ void uart1_init_interrupt()
 }
 void uart2_init()
 {
+	APB1_clk_setup(UART2en);
+	APB2_clk_setup(GPIOAen);
+
 	//PA2-tx,PA3-rx
 	uint32_t* GPIOA_AFL = (uint32_t*)0x40010800;
 	*GPIOA_AFL &= ~(0b11111111<<8);
