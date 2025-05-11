@@ -10,6 +10,7 @@
 #include "DMA_lib.h"
 #include "timer_lib.h"
 #include "data_handle.h"
+#include "adc_lib.h"
 //void SystemClock_Config(void);
 //static void MX_GPIO_Init(void);
 
@@ -97,7 +98,7 @@ int main(void)
   gpio_init(&pin);
   button_init();
   timer_init();
-
+  adc_init();
   convert_int_to_4char(aaa, temp1);
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
   myTask02Handle = osThreadNew(StartTask02, NULL, &myTask02_attributes);
@@ -124,8 +125,8 @@ void StartTask02(void *argument)
 	while(1)
 	{
 
-		send_data(alarm,strlen(alarm));
-		x = convert_4char_to_uint32(aaa);
-		osDelay(3000);
+//		send_data(alarm,strlen(alarm));
+		x = read_adc_channel1();
+		osDelay(100);
 	}
 }

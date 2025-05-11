@@ -52,6 +52,8 @@ typedef enum{
 	GPIOCen,
 	GPIODen,
 	GPIOEen,
+	ADC1en = 9,
+	ADC2en,
 	UART1en = 14
 }RCC_APB2_bit;
 
