@@ -30,18 +30,18 @@ void DMA_UART_init(char* data)
 	*nv |= 1<<16;
 
 }
-void DMA_ADC_init(uint16_t* data)
+void DMA_ADC_init(uint32_t* data)
 {
 	AHB1_clk_setup(DMA1en);
 
 	uint32_t* CNDTR1 = (uint32_t*)0x4002000c;
-	*CNDTR1 = 10;
+	*CNDTR1 = 8;
 	uint32_t* CPAR1 = (uint32_t*)0x40020010;
-	*CPAR1 = 0x4001244c;
+	*CPAR1 = (uint32_t)0x4001244c;
 	uint32_t* CMAR1 = (uint32_t*)0x40020014;
 	*CMAR1 = (uint32_t)data;
 	uint32_t* CCR1 = (uint32_t*)0x40020008;
-	*CCR1 |= ((0b0101<<8) );
+	*CCR1 |= (0b0101<<8) |(1<<7) | (1<<5);
 	*CCR1 |= 1<<0;
 //	uint32_t* nv = (uint32_t*)0xe000e100;
 //	*nv |= 1<<16;

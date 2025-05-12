@@ -44,24 +44,25 @@ char uart_buff[];
 char alarm[10];
 uint32_t temp1 = 767574684;
 uint16_t y,z,g;
-uint16_t x[10];
+uint16_t x[8];
 
 static char connect_flag = 0;
 typedef struct test{
 		int test1;
 		int test2;
 }test_type_t;
-
-void EXTI0_IRQHandler()
+void EXTI9_5_IRQHandler()
 {
-	osDelay(1000);
-	if((int)button_read(0) == 0)
+	delay(3000);
+	if((int)button_read(8) == 0)
 	{
 		connect_flag = 1;
 	}
+
 	uint32_t* EXTI_PR =(uint32_t*) 0x40010414;
-	*EXTI_PR |= (0x01<<0);
+	*EXTI_PR |= (0x01<<8);
 }
+
 void USART1_IRQHandler()
 {
 	data[indx] = recv_byte();
@@ -100,7 +101,7 @@ int main(void)
   button_init();
   timer_init();
   adc_init();
-  DMA_ADC_init(x);
+  DMA_ADC_init((uint32_t)x);
   convert_int_to_4char(aaa, temp1);
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
   myTask02Handle = osThreadNew(StartTask02, NULL, &myTask02_attributes);
@@ -119,7 +120,7 @@ void StartDefaultTask(void *argument)
 		{
 		 connect_handler(&connect_flag,uart_buff);
 		}
-		osDelay(1);
+		osDelay(1000);
 	}
 }
 void StartTask02(void *argument)
@@ -127,10 +128,10 @@ void StartTask02(void *argument)
 	while(1)
 	{
 
-		send_data(alarm,strlen(alarm));
-		y = read_adc_channel4();
-		z = read_regular_CH0();
+//		send_data(alarm,strlen(alarm));
+
 		g = read_regular_CH1();
+
 		osDelay(100);
 	}
 }

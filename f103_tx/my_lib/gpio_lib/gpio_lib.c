@@ -71,20 +71,21 @@ void gpio_init(gpio_pin_t *pin)
 
 void button_init()
 {
+	APB2_clk_setup(GPIOBen);
 
-	uint32_t* GPIOA_CRL = (uint32_t*)0x40010800;
-	*GPIOA_CRL &= ~(0b1111<<0);
+	uint32_t* GPIOB_CRH = (uint32_t*)0x40010804;
+	*GPIOB_CRH &= ~(0b1111<<0);
 
-	*GPIOA_CRL |= (0b1000<<0);
-	uint32_t* GPIOC_ODR = (uint32_t*)0x4001080c;
-	*GPIOC_ODR |= (1<<0);
+	*GPIOB_CRH |= (0b1000<<0);
+	uint32_t* GPIOB_ODR = (uint32_t*)0x4001080c;
+	*GPIOB_ODR |= (1<<8);
 	uint32_t* EXTI_IMR = (uint32_t*)0x40010400;
-	*EXTI_IMR |= (1<<0);
+	*EXTI_IMR |= (1<<8);
 	uint32_t* EXTI_RTSR = (uint32_t*)0x4001040c;
-	*EXTI_RTSR |= 1<<0;
+	*EXTI_RTSR |= 1<<8;
 
-	uint32_t* NVIC_ISER1 = 0xe000e100;
-	 *NVIC_ISER1 |= (0b1<<6);
+	uint32_t* NVIC_ISER0 = 0xe000e100;
+	 *NVIC_ISER0 |= (0b1<<23);
 
 }
 
