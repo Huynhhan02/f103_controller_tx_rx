@@ -16,11 +16,12 @@ void adc_init()
 
 
 	uint32_t* CR1 = (uint32_t*)0x40012404;
-//	*CR1 |=  (1<<8);
+	*CR1 |=  (1<<8);
 	uint32_t* CR2 = (uint32_t*)0x40012408;
-	*CR2 |= (1<<15)| (0b111<<12) |(1<<0) | (1<<23);
 	uint32_t* JSQR = (uint32_t*)0x40012438;
-	*JSQR |=  (0b1<<15);
+	*JSQR |=  (0b11<<20) | (0b1<<15) | (2<<10) | (3<<5) | (16<<0);
+	*CR2 |= (1<<15)| (0b111<<12) |(1<<0) | (1<<23) | (1<<8);
+
 }
 
 uint16_t read_adc_channel1()
@@ -35,14 +36,39 @@ uint16_t read_adc_channel1()
 	*SR&= ~(1<<2);
 	return val;
 }
+uint16_t read_adc_channel2()
+{
+	uint32_t* JDR2 = 0x40012440;
+	uint32_t* CR2 = (uint32_t*)0x40012408;
+	uint32_t* SR = (uint32_t*)0x40012400;
+	uint16_t val;
+	*CR2 |= 1<<21;
+	while(((*SR>>2)&1) != 1);
+	val = *JDR2;
+	*SR&= ~(1<<2);
+	return val;
+}
+uint16_t read_adc_channel3()
+{
+	uint32_t* JDR3 = 0x40012444;
+	uint32_t* CR2 = (uint32_t*)0x40012408;
+	uint32_t* SR = (uint32_t*)0x40012400;
+	uint16_t val;
+	*CR2 |= 1<<21;
+	while(((*SR>>2)&1) != 1);
+	val = *JDR3;
+	*SR&= ~(1<<2);
+	return val;
+}
 uint16_t read_adc_channel4()
 {
 	uint32_t* JDR4 = 0x40012448;
 	uint32_t* CR2 = (uint32_t*)0x40012408;
 	uint32_t* SR = (uint32_t*)0x40012400;
-
+	uint16_t val;
 	*CR2 |= 1<<21;
-	while((*SR>>2 &1) == 0);
+	while(((*SR>>2)&1) != 1);
+	val = *JDR4;
 	*SR&= ~(1<<2);
-	return *JDR4;
+	return val;
 }
