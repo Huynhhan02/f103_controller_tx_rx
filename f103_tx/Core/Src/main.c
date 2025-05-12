@@ -43,7 +43,8 @@ int indx = 0;
 char uart_buff[];
 char alarm[10];
 uint32_t temp1 = 767574684;
-uint16_t x,y,z,g;
+uint16_t y,z,g;
+uint16_t x[10];
 
 static char connect_flag = 0;
 typedef struct test{
@@ -99,7 +100,7 @@ int main(void)
   button_init();
   timer_init();
   adc_init();
-  DMA_ADC_init(&x);
+  DMA_ADC_init(x);
   convert_int_to_4char(aaa, temp1);
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
   myTask02Handle = osThreadNew(StartTask02, NULL, &myTask02_attributes);
@@ -127,7 +128,9 @@ void StartTask02(void *argument)
 	{
 
 		send_data(alarm,strlen(alarm));
-
+		y = read_adc_channel4();
+		z = read_regular_CH0();
+		g = read_regular_CH1();
 		osDelay(100);
 	}
 }
