@@ -11,7 +11,7 @@
 #include "stdio.h"
 #include "stdint.h"
 #include "RCC_lib.h"
-
+#include "timer_lib.h"
 #define GPIOA_base_adr 		0x40010800
 #define GPIOB_base_adr 		0x40010C00
 #define GPIOC_base_adr 		0x40011000

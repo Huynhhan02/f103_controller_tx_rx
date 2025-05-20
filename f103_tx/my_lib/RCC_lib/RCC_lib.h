@@ -9,12 +9,12 @@
 #define RCC_LIB_RCC_LIB_H_
 
 #include "stdint.h"
-
 #define RCC_base_adr 0x40021000
 
 typedef enum{
 	HSI,
-	HSE
+	HSE,
+	 PLL,
 }crystal_type_t;
 
 typedef enum{

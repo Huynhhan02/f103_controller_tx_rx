@@ -39,7 +39,7 @@ void uart1_init_interrupt()
 
 	//set uart baudrate = 9600
 	uint32_t* UART1_BRR = (uint32_t*)0x40013808;
-	*UART1_BRR = ((52<<4) | (1<<0));
+	*UART1_BRR = ((468<<4) | (12<<0));
 	uint32_t* UART1_CR1 = (uint32_t*)0x4001380c;
 	*UART1_CR1 |= ((1<<13) | (1<<2) | (1<<3) | (1<<5));
 	uint32_t* NVIC_ISER1 = 0xE000E104;
@@ -74,7 +74,7 @@ void send_byte(char data)
 
 	while(((*USART_SR>>7) &1) != 1);
 	*USART_DR = data;
-	while(((*USART_SR>>6) &1) != 0);
+//	while(((*USART_SR>>6) &1) != 0);
 }
 void send_byte_uart2(char data)
 {

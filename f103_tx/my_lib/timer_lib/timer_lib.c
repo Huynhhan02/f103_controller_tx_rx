@@ -10,13 +10,13 @@
 
 void timer_init()
 {
-	  APB1_clk_setup(TIM4en);
+	  APB1_clk_setup(TIM2en);
 
 //		uint32_t* TIM1_DIER = (uint32_t*)(TIM1_BASE + 0x0c);
 //		*TIM1_DIER |= 1;
-		uint32_t* PSC = (uint32_t*)0x40000828;
-		*PSC = 8000;
-		uint32_t* CR1 = (uint32_t*)0x40000800;
+		uint32_t* PSC = (uint32_t*)0x40000028;
+		*PSC = 7200;
+		uint32_t* CR1 = (uint32_t*)0x40000000;
 		*CR1 |= 1;
 //		uint32_t* ARR = (uint32_t*)0x4000142c;
 //		*ARR = 2000;
@@ -25,10 +25,10 @@ void timer_init()
 //		*NVIC_ISER0 |= 1<<25;
 }
 
-void delay(int ms)
+void delay(int _ms)
 {
-	uint32_t* CNT = (uint32_t*)0x40000824;
+	uint32_t* CNT = (uint32_t*)0x40000024;
 	*CNT = 0;
 
-	while(*CNT<ms);
+	while(*CNT<_ms);
 }

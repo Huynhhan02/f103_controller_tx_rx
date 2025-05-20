@@ -11,6 +11,7 @@
 #include "timer_lib.h"
 #include "data_handle.h"
 #include "adc_lib.h"
+#include "i2c_lib.h"
 //void SystemClock_Config(void);
 //static void MX_GPIO_Init(void);
 
@@ -21,9 +22,9 @@ const osThreadAttr_t defaultTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for myTask02 */
-osThreadId_t myTask02Handle;
-const osThreadAttr_t myTask02_attributes = {
-  .name = "myTask02",
+osThreadId_t rxConnectHandle;
+const osThreadAttr_t rxConnect_attributes = {
+  .name = "rxConnect",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
@@ -34,7 +35,7 @@ const osThreadAttr_t myTask02_attributes = {
 
 
 void StartDefaultTask(void *argument);
-void StartTask02(void *argument);
+void rxConnectTask(void *argument);
 
 
 char data[20];
@@ -42,18 +43,18 @@ char aaa[4];
 int indx = 0;
 char uart_buff[];
 char alarm[10];
-uint32_t temp1 = 767574684;
-uint16_t y,z,g;
-uint16_t x[8];
-
+uint32_t temp1;
+uint16_t y,g;
+uint8_t SEND_CHANNEL[8];
+uint16_t ADC_read_buff[8];
+uint8_t i2c_buff[10];
+char CH1[2];
+char dataCH1_CH8[8];
 static char connect_flag = 0;
-typedef struct test{
-		int test1;
-		int test2;
-}test_type_t;
+int first_uart_flag = 0;
 void EXTI9_5_IRQHandler()
 {
-	delay(3000);
+	//delay(3000);
 	if((int)button_read(8) == 0)
 	{
 		connect_flag = 1;
@@ -65,73 +66,89 @@ void EXTI9_5_IRQHandler()
 
 void USART1_IRQHandler()
 {
+
 	data[indx] = recv_byte();
+
 	if(data[indx++] == '\n')
 	{
+		strcpy(uart_buff,"");
 		indx = 0;
 		strcpy(uart_buff,data);
-//		send_data(uart_buff, strlen(data));
-//		memset(uart_buff,0,strlen(uart_buff));
 		memset(data,0,strlen(data));
-		if(strcmp(uart_buff,"han\r\n")==0)
-		{
-			send_data("hello", 5);
-			memset(uart_buff,0,strlen(uart_buff));
-		}
-
 	}
+	if(indx>20)
+		indx = 0;
 }
 int main(void)
 {
-
-  HAL_Init();
-  RCC_init(HSI);
+     HAL_Init();
+  RCC_init(PLL);
   osKernelInitialize();
-
-//  SystemClock_Config();
   APB2_clk_setup(GPIOCen);
   uart1_init_interrupt();
-  gpio_pin_t pin = {
-		  .config_output = output_push_pull,
-		  .mode = output_10Mhz,
-		  .pin = 13,
-		  .port = PORTC,
-  };
+	  gpio_pin_t pin = {
+			  .config_output = output_push_pull,
+			  .mode = output_10Mhz,
+			  .pin = 13,
+			  .port = PORTC,
+	  };
   gpio_init(&pin);
   button_init();
   timer_init();
+  i2c_init();
   adc_init();
-  DMA_ADC_init((uint32_t)x);
-  convert_int_to_4char(aaa, temp1);
+  connect_handler(&connect_flag, uart_buff);
+  DMA_ADC_init((uint32_t)ADC_read_buff);
+//  uint32_t* NVIC_IPR37 = (uint32_t*) 0xe000e494;
+//  *NVIC_IPR37 = 13;
+  //connect_handle = osThreadNew(connect_handle_task, NULL, &connect_handle_attributes);
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-  myTask02Handle = osThreadNew(StartTask02, NULL, &myTask02_attributes);
-  strcpy(alarm,"ngaancuc");
+  rxConnectHandle = osThreadNew(rxConnectTask, NULL, &rxConnect_attributes);
   osKernelStart();
-
+//  while(1)
+//  	{
+////  		convert_uint16_to_2char(CH1,ADC_read_buff[0]);
+//  		g = read_regular_CH1();
+////  		z = MAP(convert_2char_to_uint16(CH1), 0, 4095, 0, 180);
+//  		send_data(&g, 1);
+//
+//  		if(connect_flag == 1)
+//  			connect_handler(&connect_flag, uart_buff);
+//
+//  		delay(200);
+//
+//  	}
   /* USER CODE END 3 */
 }
+
 
 
 void StartDefaultTask(void *argument)
 {
 	while(1)
 	{
-		if(connect_flag)
-		{
-		 connect_handler(&connect_flag,uart_buff);
-		}
-		osDelay(1000);
+//		convert_uint16_to_2char(CH1,ADC_read_buff[0]);
+		SEND_CHANNEL[0] = MAP(ADC_read_buff[0], 0, 4095, 0, 180);
+		convertADC_to_sendchanel(SEND_CHANNEL, ADC_read_buff);
+		send_data(&SEND_CHANNEL, 2);
+//		g = read_regular_CH1();
+//		i2c_buff[0] = read_i2c(0x68, 0x75);
+		osDelay(300);
+
+
 	}
 }
-void StartTask02(void *argument)
+void rxConnectTask(void *argument)
 {
 	while(1)
-	{
+ 	{
+		if(connect_flag)
+		{
+			osThreadSuspend(defaultTaskHandle);
+			connect_handler(&connect_flag, uart_buff);
+			osThreadResume(defaultTaskHandle);
+		}
 
-//		send_data(alarm,strlen(alarm));
-
-		g = read_regular_CH1();
-
-		osDelay(100);
+		osDelay(1000);
 	}
 }

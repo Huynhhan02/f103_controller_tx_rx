@@ -71,7 +71,7 @@ void gpio_init(gpio_pin_t *pin)
 
 void button_init()
 {
-	APB2_clk_setup(GPIOBen);
+	APB2_clk_setup(GPIOAen);
 
 	uint32_t* GPIOB_CRH = (uint32_t*)0x40010804;
 	*GPIOB_CRH &= ~(0b1111<<0);
@@ -81,7 +81,7 @@ void button_init()
 	*GPIOB_ODR |= (1<<8);
 	uint32_t* EXTI_IMR = (uint32_t*)0x40010400;
 	*EXTI_IMR |= (1<<8);
-	uint32_t* EXTI_RTSR = (uint32_t*)0x4001040c;
+	uint32_t* EXTI_RTSR = (uint32_t*)0x40010408;
 	*EXTI_RTSR |= 1<<8;
 
 	uint32_t* NVIC_ISER0 = 0xe000e100;
@@ -107,6 +107,13 @@ void toggle_led(int led)
 		led_control(led, 0);
 	else
 		led_control(led, 1);
+}
+void toggle_led_3(int led){
+	int i = 0;
+	while (i++<5){
+		toggle_led(led);
+		delay(100);
+	}
 }
 char button_read(int button_number)
 {
