@@ -38,7 +38,7 @@ void RCC_init(crystal_type_t rcc)
 		while(((*RCC_CFGR >> 1) & 1) != 1);
 		*RCC_CR |= (1<<16);
 		while(((*RCC_CR>>17) & 1) == 0);
-
+		set_clock_72Mhz();
 	}
 
 	APB1_clk_setup(PWRen);
@@ -63,4 +63,7 @@ void APB2_clk_setup(RCC_APB2_bit APB2_bit)
 	uint32_t* RCC_APB2 = (uint32_t*)(RCC_base_adr + 0x18);
 	*RCC_APB2 |= (0x01<< APB2_bit ); // GPIOD_clk_enable
 
+}
+void set_clock_72Mhz(){
+	SystemCoreClock = 72000000;
 }

@@ -9,12 +9,12 @@
 #define RCC_LIB_RCC_LIB_H_
 
 #include "stdint.h"
-
 #define RCC_base_adr 0x40021000
 
 typedef enum{
 	HSI,
-	HSE
+	HSE,
+	 PLL,
 }crystal_type_t;
 
 typedef enum{
@@ -52,10 +52,18 @@ typedef enum{
 	GPIOCen,
 	GPIODen,
 	GPIOEen,
+	ADC1en = 9,
+	ADC2en,
+	UART1en = 14
 }RCC_APB2_bit;
 
+extern uint32_t SystemCoreClock;
+
+void Fist_init(crystal_type_t rcc);
 void RCC_init(crystal_type_t rcc);
 void AHB1_clk_setup(RCC_AHB1_bit AHB1_bit);
 void APB1_clk_setup(RCC_APB1_bit APB1_bit);
 void APB2_clk_setup(RCC_APB2_bit APB2_bit);
+void set_clock_72Mhz(void);
+
 #endif /* RCC_LIB_RCC_LIB_H_ */
